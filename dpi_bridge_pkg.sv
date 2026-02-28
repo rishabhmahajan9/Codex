@@ -85,6 +85,8 @@ package dpi_bridge_pkg;
     axi_sequencer tile_axi_port2;    // portid == 0, addr 0x4001–0x6000
     axi_sequencer tile_axi_port3;    // portid == 0, addr 0x6001–0x8000
 
+    mem_block mem;                   // shared memory model, set by env
+
     function new(string name = "axi_virtual_sequencer", uvm_component parent = null);
       super.new(name, parent);
     endfunction
@@ -329,6 +331,29 @@ package dpi_bridge_pkg;
         end
       end
     endtask
+
+  endclass
+
+
+  // ──────────────────────────────────────────────────────────────────
+  // Memory Block — associative-array memory model for DRAM agent
+  // ──────────────────────────────────────────────────────────────────
+  class mem_block extends uvm_object;
+    `uvm_object_utils(mem_block)
+
+    bit [15:0] mem [bit [15:0]];   // sparse associative array: addr → data
+
+    function new(string name = "mem_block");
+      super.new(name);
+    endfunction
+
+    function void write(bit [15:0] addr, bit [15:0] data);
+      mem[addr] = data;
+    endfunction
+
+    function bit [15:0] read(bit [15:0] addr);
+      return mem.exists(addr) ? mem[addr] : '0;
+    endfunction
 
   endclass
 
